@@ -3104,8 +3104,8 @@
           if (target === node && ['transform', 'opacity'].includes(event.propertyName)) {
             this.scheduleMinimapUpdate(true);
           }
-        } else if (['mouseenter', 'mouseleave', 'focusin', 'focusout'].includes(event.type)) {
-          if (event.type.startsWith('mouse') && event.relatedTarget && event.relatedTarget.nodeType
+        } else if (['mouseenter', 'mouseleave'].includes(event.type)) {
+          if (event.relatedTarget && event.relatedTarget.nodeType
             && node.contains(event.relatedTarget)) {
             return;
           }
@@ -3128,7 +3128,7 @@
           handler.call(this, routed);
         }
       }.bind(this);
-      ['mouseenter', 'mouseleave', 'focusin', 'focusout', 'click', 'keydown', 'transitionend', 'transitioncancel'].forEach(function (type) {
+      ['mouseenter', 'mouseleave', 'click', 'keydown', 'transitionend', 'transitioncancel'].forEach(function (type) {
         chartElement.addEventListener(type, route, true);
       });
     },
@@ -3140,13 +3140,7 @@
       if (!nodeElement || getState(nodeElement, 'updatingControls')) {
         return;
       }
-      if (eventType === 'mouseleave' || eventType === 'focusout') {
-        const activeElement = getDocument().activeElement;
-        if ((eventType === 'mouseleave' && activeElement && activeElement.closest('.node') === nodeElement)
-          || (eventType === 'focusout' && ((nativeEvent.relatedTarget && nodeElement.contains(nativeEvent.relatedTarget))
-            || nodeElement.matches(':hover')))) {
-          return;
-        }
+      if (eventType === 'mouseleave') {
         nodeElement.classList.remove('controls-active');
         this.removeNodeControls(nodeElement);
         return;
@@ -3194,7 +3188,6 @@
       nodeElement.classList.add('focused');
       if (!this.isInAction(nodeElement)) {
         nodeElement.focus({ preventScroll: true });
-        this.nodeEnterLeaveHandler({ type: 'mouseenter', node: nodeElement });
       }
     },
     addAncestors: function (data, parentId) {

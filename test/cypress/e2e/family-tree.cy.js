@@ -299,14 +299,18 @@ function sampleConnectorAnimation(identifier, edge, targets) {
 
     [['8', '{enter}'], ['9', ' '], ['5', '{enter}']].forEach(([identifier, key]) => {
       const couple = couples.find(({ members }) => members.includes(identifier));
-      it('supports focus, keyboard activation and blur on shared child control ' + identifier, () => {
+      it('supports keyboard activation while hovered and hides controls on leave for ' + identifier, () => {
         node(identifier).scrollIntoView().focus();
+        node(identifier).children('.edge').should('not.exist');
+        node(identifier).trigger('mouseenter');
         node(identifier).children('.bottomEdge').should('have.attr', 'aria-label', 'Toggle child nodes')
           .focus().type(key);
         expectHidden(couple.descendants);
         expectVisible(couple.members);
-        node(identifier).trigger('mouseleave').children('.bottomEdge').should('exist')
-          .and('have.class', 'oci-chevron-down').type(key);
+        node(identifier).trigger('mouseleave').should('have.class', 'focused').children('.edge').should('not.exist');
+        node(identifier).focus().children('.edge').should('not.exist');
+        node(identifier).trigger('mouseenter').children('.bottomEdge').should('have.class', 'oci-chevron-down')
+          .focus().type(key);
         expectVisible(couple.children);
         expectHidden(couple.descendants.filter((member) => !couple.children.includes(member)));
         node(identifier).children('.bottomEdge').blur();

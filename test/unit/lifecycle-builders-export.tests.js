@@ -719,18 +719,23 @@ describe('orgchart -- init and builder unit tests', function () {
       queryAll('.edge', oc.chart).length.should.equal(0);
     });
 
-    it('keeps controls while focused and releases them after blur', function () {
+    it('only shows controls while hovered even when the node or control is focused', function () {
       const node = query('#n3', oc.chart);
       node.focus();
-      should.exist(query('.bottomEdge', node));
+      should.equal(query('.edge', node), null);
+      node.dispatchEvent(new window.MouseEvent('mouseenter'));
+      query('.bottomEdge', node).focus();
       node.dispatchEvent(new window.MouseEvent('mouseleave'));
-      should.exist(query('.bottomEdge', node));
+      should.equal(query('.edge', node), null);
+      node.focus();
+      should.equal(query('.edge', node), null);
       node.blur();
       should.equal(query('.edge', node), null);
     });
 
     it('supports keyboard activation of a lazily created control', function () {
       const node = query('#n3', oc.chart);
+      node.dispatchEvent(new window.MouseEvent('mouseenter'));
       node.focus();
       const control = query('.bottomEdge', node);
       control.getAttribute('role').should.equal('button');

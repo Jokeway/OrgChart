@@ -130,21 +130,7 @@
       'nodeId': 'id',
       createNode: (node) => {
         node.addEventListener('mouseenter', () => renderRequestButtons(node));
-        node.addEventListener('mouseleave', () => {
-          if (!node.contains(document.activeElement)) {
-            removeRequestButtons(node);
-          }
-        });
-        node.addEventListener('focusin', (event) => {
-          if (event.target === node) {
-            renderRequestButtons(node);
-          }
-        });
-        node.addEventListener('focusout', (event) => {
-          if (!node.contains(event.relatedTarget) && !node.matches(':hover')) {
-            removeRequestButtons(node);
-          }
-        });
+        node.addEventListener('mouseleave', () => removeRequestButtons(node));
       }
     });
 
@@ -188,7 +174,7 @@
         spinner.remove();
         node.removeAttribute('aria-busy');
         removeRequestButtons(node);
-        if (node.matches(':hover') || node.contains(document.activeElement)) {
+        if (node.matches(':hover')) {
           renderRequestButtons(node);
           if (failed) {
             node.querySelectorAll(':scope > .request-control').forEach((retryButton) => {

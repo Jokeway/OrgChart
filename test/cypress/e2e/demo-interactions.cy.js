@@ -215,7 +215,8 @@ describe('Family Tree with Flat Datasource', () => {
 
   it('supports keyboard control of the correct spouse descendants on mobile', () => {
     cy.viewport(390, 844);
-    cy.get('[id="12"]').focus();
+    cy.get('[id="12"]').focus().find('.edge').should('not.exist');
+    cy.get('[id="12"]').trigger('mouseenter');
     cy.get('[id="12"] > .bottomEdge').focus().trigger('keydown', { key: 'Enter' });
     cy.get('[id="7"]').should('not.be.visible');
     cy.get('[id="6"]').should('not.be.visible');

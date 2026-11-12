@@ -370,6 +370,52 @@ describe('orgchart -- integration tests', function () {
       node.classList.contains('controls-active').should.equal(false);
     });
 
+    ['topEdge', 'bottomEdge', 'leftEdge', 'rightEdge'].forEach(function (edgeClass) {
+      it('removes controls on mouseleave after clicking ' + edgeClass, function () {
+        [false, true].forEach(function (expanded) {
+          dispatchNativeEvent($sumiao, 'mouseenter', { bubbles: false });
+          const control = query('.' + edgeClass, $sumiao);
+          control.focus();
+          dispatchNativeEvent(control, 'click', { detail: 1 });
+
+          document.activeElement.should.equal(control);
+          $sumiao.classList.contains('focused').should.equal(true);
+          dispatchNativeEvent($sumiao, 'mouseleave', { bubbles: false });
+
+          $sumiao.classList.contains('controls-active').should.equal(false);
+          queryAll('.edge', $sumiao).should.have.lengthOf(0);
+          $sumiao.classList.contains('focused').should.equal(true);
+
+          queryAll('.sliding', oc.chart).forEach(function (node) {
+            dispatchNativeEvent(node, 'transitionend');
+          });
+          queryAll('.edge', $sumiao).should.have.lengthOf(0);
+          const relation = edgeClass === 'topEdge' ? 'parent' : edgeClass === 'bottomEdge' ? 'children' : 'siblings';
+          oc.getNodeState($sumiao, relation).visible.should.equal(expanded);
+        });
+      });
+    });
+
+    it('does not let focus or keyboard input keep controls after mouseleave', function () {
+      dispatchNativeEvent($sumiao, 'mouseenter', { bubbles: false });
+      const control = query('.bottomEdge', $sumiao);
+      control.focus();
+      dispatchNativeEvent(control, 'click', { detail: 1 });
+      control.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+      dispatchNativeEvent($sumiao, 'mouseleave', { bubbles: false });
+      queryAll('.edge', $sumiao).should.have.lengthOf(0);
+
+      $sumiao.focus();
+      $sumiao.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      dispatchNativeEvent($sumiao, 'click');
+      oc.refreshNodeControls($sumiao);
+      dispatchNativeEvent($sumiao, 'mouseleave', { bubbles: false });
+      queryAll('.edge', $sumiao).should.have.lengthOf(0);
+      $sumiao.classList.contains('focused').should.equal(true);
+      $sumiao.blur();
+      queryAll('.edge', $sumiao).should.have.lengthOf(0);
+    });
+
     it('keeps exported layout metadata synchronized after a deeper horizontal drop', async function () {
       const moved = query('#n5', oc.chart);
       const target = query('#n9', oc.chart);

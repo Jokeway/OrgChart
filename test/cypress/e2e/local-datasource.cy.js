@@ -78,6 +78,66 @@ describe('Local Datasource', () => {
       cy.get(tiehua).get(heihei).should('be.visible');
   });
 
+  [1200, 390].forEach((width) => {
+    ['topEdge', 'bottomEdge', 'leftEdge', 'rightEdge'].forEach((edge) => {
+      it('releases ' + edge + ' controls after pointer collapse and expansion at ' + width + 'px', () => {
+        cy.viewport(width, 844);
+        const relatedNode = edge === 'topEdge' ? laolao : edge === 'bottomEdge' ? tiehua : bomiao;
+
+        [false, true].forEach((expanded) => {
+          cy.get(sumiao).trigger('mouseenter').find('.' + edge).click();
+          cy.get(sumiao).trigger('mouseleave').should('not.have.class', 'controls-active');
+          cy.get(sumiao).find('.edge').should('not.exist');
+          cy.get('.orgchart .sliding').should('not.exist');
+          cy.get(relatedNode).should(expanded ? 'be.visible' : 'not.be.visible');
+          cy.get(sumiao).should('have.class', 'focused').find('.edge').should('not.exist');
+        });
+
+        cy.get(sumiao).trigger('mouseenter').find('.edge').should('have.length', 4);
+        cy.get(sumiao).trigger('mouseleave').find('.edge').should('not.exist');
+      });
+    });
+  });
+
+});
+
+describe('Hover-only controls across demo layouts', () => {
+  const controls = '.edge, .toggleBtn, .backToCompactSymbol, .backToLooseSymbol';
+  const layouts = [
+    { page: 'vertical-level.html', node: '.node:contains("Hei Hei")', actions: ['.toggleBtn', '.toggleBtn'] },
+    { page: 'data-prop-hybrid.html', node: '[id="13"]', actions: ['.bottomEdge', '.bottomEdge'] },
+    { page: 'data-prop-hybrid.html', node: '[id="15"]', actions: ['.toggleBtn', '.toggleBtn'] },
+    { page: 'data-prop-compact.html', node: '.node:contains("Bo Miao")', actions: ['.backToLooseSymbol', '.backToCompactSymbol'] },
+    { page: 'family-tree.html', node: '[id="12"]', actions: ['.bottomEdge', '.bottomEdge'] },
+    { page: 'options-hybrid-navigation.html', node: '#services', actions: ['.toggleBtn', '.toggleBtn'] }
+  ];
+
+  [1200, 390].forEach((width) => {
+    layouts.forEach(({ page, node, actions }) => {
+      it('hides controls but preserves selection for ' + page + ' ' + node + ' at ' + width + 'px', () => {
+        cy.viewport(width, 844);
+        cy.visit('demo/' + page);
+        cy.get(node).focus().children(controls).should('not.exist');
+
+        actions.forEach((action) => {
+          cy.get(node).children('.title').trigger('mouseenter');
+          cy.get(node).children(action).click();
+          cy.get(node).children('.title').trigger('mouseleave');
+          cy.get(node).should('not.have.class', 'controls-active')
+            .and('have.class', 'focused').children(controls).should('not.exist');
+          cy.get('.orgchart .sliding').should('not.exist');
+          cy.get(node).focus().children('.title').trigger('click');
+          cy.get(node).should('have.class', 'focused')
+            .children(controls).should('not.exist');
+        });
+
+        cy.get(node).children('.title').trigger('mouseenter');
+        cy.get(node).children(controls).should('exist');
+        cy.get(node).children('.title').trigger('mouseleave');
+        cy.get(node).children(controls).should('not.exist');
+      });
+    });
+  });
 });
 
 describe('Parent ID Datasource', () => {
@@ -147,7 +207,8 @@ describe('Parent ID Datasource', () => {
 
   it('supports keyboard expand and collapse on a narrow viewport', () => {
     cy.viewport(390, 844);
-    cy.get('[id="1"]').focus();
+    cy.get('[id="1"]').focus().find('.edge').should('not.exist');
+    cy.get('[id="1"]').trigger('mouseenter');
     cy.get('[id="1"] > .bottomEdge').focus().trigger('keydown', { key: 'Enter' });
     cy.get('[id="6"]').should('not.be.visible');
     cy.get('[id="1"] > .bottomEdge').focus().trigger('keydown', { key: 'Enter' });

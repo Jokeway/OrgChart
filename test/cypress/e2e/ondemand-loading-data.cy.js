@@ -41,6 +41,19 @@ describe('Load data on-demand', () => {
     cy.get(sumiao).trigger('mouseenter').find('.request-siblings').should('have.length', 2);
   });
 
+  [[sumiao, 'parent', '#n0'], [heihei, 'children', '#n5']].forEach(([node, relation, loadedNode]) => {
+    it('hides request controls on mouseleave while loading ' + relation + ' and preserves selection', () => {
+      cy.clock();
+      cy.get(node).focus().find('.request-control').should('not.exist');
+      cy.get(node).trigger('mouseenter').find('.request-' + relation).click();
+      cy.get(node).trigger('mouseleave').should('have.class', 'focused')
+        .find('.request-control, .edge').should('not.exist');
+      cy.tick(1000);
+      cy.get(loadedNode).should('exist');
+      cy.get(node).should('have.class', 'focused').find('.request-control, .edge').should('not.exist');
+    });
+  });
+
   ['left', 'right'].forEach((side) => {
     it('load the ancestors of sumiao by expanding horizontally from the ' + side, () => {
       cy.clock();
